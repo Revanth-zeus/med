@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- MedLearn AI v2.0 - Exam Mode Enabled - Updated Dec 2024 -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedLearn AI - NCLEX Question Generator</title>
+    <link rel="stylesheet" href="/style_s.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Add Chart.js for radar chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 6H16V4C16 2.89 15.11 2 14 2H10C8.89 2 8 2.89 8 4V6H4C2.89 6 2.01 6.89 2.01 8L2 19C2 20.11 2.89 21 4 21H20C21.11 21 22 20.11 22 19V8C22 6.89 21.11 6 20 6ZM10 4H14V6H10V4ZM12 17L7 12L8.41 10.59L12 14.17L15.59 10.58L17 12L12 17Z" fill="white"/>
+                </svg>
+                <span>MedLearn AI</span>
+            </div>
+            <div class="nav-links">
+                <a href="#dashboard">Dashboard</a>
+                <a href="http://localhost:8001/docs" target="_blank">API Docs</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">NCLEX-NGN Question Generator</h1>
+                <p class="hero-subtitle">AI-Powered Clinical Questions with Hospital Policy Integration</p>
+                
+                <!-- Dashboard Stats -->
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-icon">📁</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="statDocuments">-</div>
+                            <div class="stat-label">Documents</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔢</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="statChunks">-</div>
+                            <div class="stat-label">Chunks Indexed</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="statStatus">Ready</div>
+                            <div class="stat-label">System Status</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content with Tabs -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Tab Navigation -->
+            <div class="tab-navigation">
+                <button class="tab-btn active" data-tab="generate">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+                    </svg>
+                    Generate Question
+                </button>
+                <button class="tab-btn" data-tab="documents">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 16h8v2H8zm0-4h8v2H8zm6-10H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+                    </svg>
+                    My Documents
+                </button>
+                <button class="tab-btn" data-tab="search">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                    Search Policies
+                </button>
+                <button class="tab-btn" data-tab="skills">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V9.99h7V2.95c3.94.49 7 3.85 7 7.89h-7v2.15z"/>
+                    </svg>
+                    Skills
+                </button>
+                <button class="tab-btn" data-tab="profile">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                    </svg>
+                    My Profile
+                </button>
+                <button class="tab-btn" data-tab="exam">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+                    </svg>
+                    Exam Mode
+                </button>
+                <button class="tab-btn" data-tab="recommendations">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    Recommendations
+                </button>
+                <button class="tab-btn" data-tab="authoring">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                    </svg>
+                    ✨ Authoring
+                </button>
+                <button class="tab-btn" data-tab="news">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 5v14H5V5h14m1.1-2H3.9c-.5 0-.9.4-.9.9v16.2c0 .4.4.9.9.9h16.2c.4 0 .9-.5.9-.9V3.9c0-.5-.5-.9-.9-.9zM11 7h6v2h-6V7zm0 4h6v2h-6v-2zm0 4h6v2h-6v-2zM7 7h2v2H7V7zm0 4h2v2H7v-2zm0 4h2v2H7v-2z"/>
+                    </svg>
+                    📰 News & Trends
+                </button>
+                <button class="tab-btn" data-tab="media">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                    </svg>
+                    🎧 Podcasts & Media
+                </button>
+                <button class="tab-btn" data-tab="tutor">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+                    </svg>
+                    🤖 AI Tutor
+                </button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                
+                <!-- GENERATE TAB -->
+                <div class="tab-pane active" id="generateTab">
+                    <div class="content-grid">
+                        <!-- Left Column - Form -->
+                        <div class="form-column">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h2>Question Settings</h2>
+                                    <p>Configure your NCLEX-style question parameters</p>
+                                </div>
+                                
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label for="topic">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM14 17H7V15H14V17ZM17 13H7V11H17V13ZM17 9H7V7H17V9Z"/>
+                                            </svg>
+                                            Clinical Topic
+                                        </label>
+                                        <input type="text" id="topic" placeholder="e.g., sepsis, pneumonia, ARDS" required>
+                                        <small>Enter a nursing/medical topic for question generation</small>
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="difficulty">Difficulty Level</label>
+                                            <select id="difficulty">
+                                                <option value="beginner">Beginner</option>
+                                                <option value="intermediate" selected>Intermediate</option>
+                                                <option value="advanced">Advanced</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="question_type">Question Type</label>
+                                            <select id="question_type">
+                                                <option value="mcq" selected>MCQ</option>
+                                                <option value="sata">SATA</option>
+                                                <option value="matrix">Matrix</option>
+                                                <option value="cloze">Cloze</option>
+                                                <option value="highlight">Highlight</option>
+                                                <option value="bowtie">Bowtie</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="include_citations" checked>
+                                            <span>Include PubMed Citations</span>
+                                        </label>
+                                    </div>
+
+                                    <div class="form-group" id="policyToggleGroup">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="use_policies" checked>
+                                            <span>🏥 Use My Hospital Policies</span>
+                                        </label>
+                                        <small id="policyNote" class="policy-note"></small>
+                                    </div>
+
+                                    <button id="generateBtn" class="btn-primary">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+                                        </svg>
+                                        Generate Question
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Info Card -->
+                            <div class="info-card">
+                                <h3>💡 Quick Guide</h3>
+                                <ul>
+                                    <li><strong>Beginner:</strong> Basic concepts, textbook scenarios</li>
+                                    <li><strong>Intermediate:</strong> Clinical reasoning, priority decisions</li>
+                                    <li><strong>Advanced:</strong> Complex synthesis, multiple comorbidities</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Right Column - Results -->
+                        <div class="results-column">
+                            <div id="loading" class="loading-card hidden">
+                                <div class="spinner"></div>
+                                <h3>Generating Question...</h3>
+                                <p>Please wait while we create your NCLEX-style question</p>
+                            </div>
+
+                            <div id="error" class="error-card hidden"></div>
+
+                            <div id="result" class="result-card hidden">
+                                <div class="card">
+                                    <div class="card-header result-header">
+                                        <h2>Generated Question</h2>
+                                        <div class="result-meta">
+                                            <span class="meta-badge" id="resultType">MCQ</span>
+                                            <span class="meta-badge" id="resultDifficulty">Intermediate</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body" id="questionContent"></div>
+                                </div>
+                            </div>
+
+                            <div id="placeholder" class="placeholder-card">
+                                <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3">
+                                    <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2Z"/>
+                                    <path d="M14 2V8H20"/>
+                                    <path d="M16 13H8"/>
+                                    <path d="M16 17H8"/>
+                                    <path d="M10 9H8"/>
+                                </svg>
+                                <h3>No Question Generated Yet</h3>
+                                <p>Configure your settings and click "Generate Question"</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DOCUMENTS TAB -->
+                <div class="tab-pane" id="documentsTab">
+                    <div class="documents-layout">
+                        <!-- Upload Section -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>📤 Upload New Document</h2>
+                                <p>Upload hospital policies, protocols, or guidelines (PDF, DOCX, PPTX)</p>
+                            </div>
+                            <div class="card-body">
+                                <div class="upload-area" id="uploadArea">
+                                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                        <polyline points="17 8 12 3 7 8"/>
+                                        <line x1="12" y1="3" x2="12" y2="15"/>
+                                    </svg>
+                                    <p>Click to upload or drag and drop</p>
+                                    <small>PDF, DOCX, or PPTX (Max 10MB)</small>
+                                    <input type="file" id="fileUpload" accept=".pdf,.docx,.pptx" hidden>
+                                </div>
+                                <div id="uploadProgress" class="upload-progress hidden">
+                                    <div class="upload-progress-content">
+                                        <div class="spinner"></div>
+                                        <p id="uploadProgressText">Uploading and indexing...</p>
+                                        <div class="progress-bar-container">
+                                            <div class="progress-bar-track">
+                                                <div id="uploadProgressBar" class="progress-bar-fill" style="width: 0%"></div>
+                                            </div>
+                                            <span id="uploadProgressPercent" class="progress-percent">0%</span>
+                                        </div>
+                                        <button id="cancelUploadBtn" class="btn-cancel" onclick="cancelUpload()">
+                                            ✕ Cancel Upload
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="uploadSuccess" class="upload-success hidden">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                    </svg>
+                                    <span id="uploadMessage"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Documents List -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>📁 Your Documents</h2>
+                                <button id="refreshDocsBtn" class="btn-icon" title="Refresh">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="documentsList" class="documents-list">
+                                    <div class="loading-docs">
+                                        <div class="spinner"></div>
+                                        <p>Loading documents...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEARCH TAB -->
+                <div class="tab-pane" id="searchTab">
+                    <div class="search-layout">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>🔍 Search Hospital Policies</h2>
+                                <p>Semantic search across all your uploaded documents</p>
+                            </div>
+                            <div class="card-body">
+                                <div class="search-box">
+                                    <input type="text" id="searchQuery" placeholder="e.g., What is the PEEP setting for ARDS patients?">
+                                    <button id="searchBtn" class="btn-primary">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                                        </svg>
+                                        Search
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="searchLoading" class="search-loading hidden">
+                            <div class="spinner"></div>
+                            <p>Searching documents...</p>
+                        </div>
+
+                        <div id="searchResults" class="search-results hidden"></div>
+
+                        <div id="searchPlaceholder" class="search-placeholder">
+                            <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="m21 21-4.35-4.35"/>
+                            </svg>
+                            <h3>Search Your Policies</h3>
+                            <p>Ask questions about your uploaded hospital documents and protocols</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SKILLS TAB -->
+                <div class="tab-pane" id="skillsTab">
+                    <div class="skills-layout">
+                        <!-- Skills Overview -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>🎯 Clinical Skills Ontology</h2>
+                                <p>Browse all available clinical skills and competencies</p>
+                            </div>
+                            <div class="card-body">
+                                <div class="filter-controls">
+                                    <label>Filter by Category:</label>
+                                    <select id="skillCategoryFilter">
+                                        <option value="all">All Categories</option>
+                                        <option value="Clinical Assessment">Clinical Assessment</option>
+                                        <option value="Clinical Intervention">Clinical Intervention</option>
+                                        <option value="Patient Monitoring">Patient Monitoring</option>
+                                        <option value="Medication Management">Medication Management</option>
+                                        <option value="Communication">Communication</option>
+                                        <option value="Critical Thinking">Critical Thinking</option>
+                                        <option value="Technical Skills">Technical Skills</option>
+                                        <option value="Patient Safety">Patient Safety</option>
+                                    </select>
+                                    
+                                    <label style="margin-left: 2rem;">Filter by Role:</label>
+                                    <select id="skillRoleFilter">
+                                        <option value="all">All Roles</option>
+                                        <option value="Registered Nurse">Registered Nurse</option>
+                                        <option value="ICU Nurse">ICU Nurse</option>
+                                        <option value="Emergency Room Nurse">ER Nurse</option>
+                                        <option value="Respiratory Therapist">Respiratory Therapist</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Skills List -->
+                        <div class="card" style="margin-top: 2rem;">
+                            <div class="card-header">
+                                <h2>Available Skills</h2>
+                                <span id="skillsCount" class="count-badge">0 skills</span>
+                            </div>
+                            <div class="card-body">
+                                <div id="skillsList" class="skills-grid">
+                                    <div class="loading-state">
+                                        <div class="spinner"></div>
+                                        <p>Loading skills...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Competencies -->
+                        <div class="card" style="margin-top: 2rem;">
+                            <div class="card-header">
+                                <h2>📋 Competencies</h2>
+                                <p>Grouped skill sets for comprehensive clinical practice</p>
+                            </div>
+                            <div class="card-body">
+                                <div id="competenciesList" class="competencies-grid">
+                                    <div class="loading-state">
+                                        <div class="spinner"></div>
+                                        <p>Loading competencies...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PROFILE TAB -->
+                <div class="tab-pane" id="profileTab">
+                    <div class="profile-layout">
+                        
+                        <!-- Profile Setup (shown if no profile) -->
+                        <div id="profileSetup" class="card">
+                            <div class="card-header">
+                                <h2>👤 Create Your Learner Profile</h2>
+                                <p>Track your progress and identify skill gaps</p>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label>Your Name</label>
+                                    <input type="text" id="learnerName" placeholder="e.g., John Doe">
+                                </div>
+                                <div class="form-group">
+                                    <label>Your Role</label>
+                                    <select id="learnerRole">
+                                        <option value="Registered Nurse">Registered Nurse</option>
+                                        <option value="ICU Nurse">ICU Nurse</option>
+                                        <option value="Emergency Room Nurse">ER Nurse</option>
+                                        <option value="Medical-Surgical Nurse">Med-Surg Nurse</option>
+                                        <option value="Respiratory Therapist">Respiratory Therapist</option>
+                                    </select>
+                                </div>
+                                <button id="createProfileBtn" class="btn-primary">Create Profile</button>
+                            </div>
+                        </div>
+
+                        <!-- Profile Dashboard (shown after profile created) -->
+                        <div id="profileDashboard" class="hidden">
+                            
+                            <!-- Profile Header -->
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="profile-header">
+                                        <div class="profile-avatar">
+                                            <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                                            </svg>
+                                        </div>
+                                        <div class="profile-info">
+                                            <h2 id="profileName">-</h2>
+                                            <p id="profileRole">-</p>
+                                        </div>
+                                        <div class="profile-stats">
+                                            <div class="stat-item">
+                                                <div class="stat-value" id="totalAttempts">0</div>
+                                                <div class="stat-label">Questions</div>
+                                            </div>
+                                            <div class="stat-item">
+                                                <div class="stat-value" id="skillsPracticed">0</div>
+                                                <div class="stat-label">Skills</div>
+                                            </div>
+                                            <div class="stat-item">
+                                                <div class="stat-value" id="avgAccuracy">0%</div>
+                                                <div class="stat-label">Accuracy</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Knowledge Graph -->
+                            <div class="card" style="margin-top: 2rem;">
+                                <div class="card-header">
+                                    <h2>📊 Knowledge Graph</h2>
+                                    <p>Visual map of your topic mastery and skills</p>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="skillsRadarChart" width="400" height="400"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- Strengths & Gaps -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+                                
+                                <!-- Strengths -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h2>💪 Your Strengths</h2>
+                                        <p>Topics where you scored 70%+</p>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="strengthsList" class="performance-list">
+                                            <div class="empty-state">
+                                                <p>Complete questions to see your strengths</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Gaps -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h2>🎯 Areas for Improvement</h2>
+                                        <p>Topics where you scored below 70%</p>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="gapsList" class="performance-list">
+                                            <div class="empty-state">
+                                                <p>Complete questions to identify improvement areas</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <!-- Detailed Performance -->
+                            <div class="card" style="margin-top: 2rem;">
+                                <div class="card-header">
+                                    <h2>📈 Detailed Skill Performance</h2>
+                                </div>
+                                <div class="card-body">
+                                    <div id="detailedPerformance" class="detailed-performance-list"></div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EXAM MODE TAB -->
+                <div class="tab-pane" id="examTab">
+                    <div class="exam-layout">
+                        
+                        <!-- Exam Setup -->
+                        <div id="examSetup" class="card">
+                            <div class="card-header">
+                                <h2>📝 Start New Exam</h2>
+                                <p>Choose your exam mode and settings</p>
+                            </div>
+                            <div class="card-body">
+                                
+                                <div class="exam-mode-selection">
+                                    <div class="mode-card" data-mode="practice">
+                                        <div class="mode-icon">📚</div>
+                                        <h3>Practice Mode</h3>
+                                        <p>Untimed, see answers immediately</p>
+                                        <div class="mode-features">
+                                            <span>✓ No time limit</span>
+                                            <span>✓ Instant feedback</span>
+                                            <span>✓ Skill tracking</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mode-card selected" data-mode="adaptive">
+                                        <div class="mode-icon">🎯</div>
+                                        <h3>Adaptive Mode</h3>
+                                        <p>Questions adjust to your level</p>
+                                        <div class="mode-features">
+                                            <span>✓ Smart difficulty</span>
+                                            <span>✓ Gap-focused</span>
+                                            <span>✓ Personalized</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mode-card" data-mode="timed">
+                                        <div class="mode-icon">⏱️</div>
+                                        <h3>Timed Mode</h3>
+                                        <p>Simulate real exam conditions</p>
+                                        <div class="mode-features">
+                                            <span>✓ Time pressure</span>
+                                            <span>✓ No hints</span>
+                                            <span>✓ Results at end</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="exam-settings">
+                                    <div class="form-group">
+                                        <label>Number of Questions</label>
+                                        <select id="examQuestionCount">
+                                            <option value="5">5 Questions (Quick)</option>
+                                            <option value="10" selected>10 Questions (Standard)</option>
+                                            <option value="15">15 Questions (Extended)</option>
+                                            <option value="25">25 Questions (Full)</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label>Focus Topic (Optional)</label>
+                                        <input type="text" id="examTopic" placeholder="e.g., cardiac arrest, sepsis">
+                                    </div>
+                                    
+                                    <div class="form-group" id="timeLimitGroup" style="display: none;">
+                                        <label>Time Limit (minutes)</label>
+                                        <select id="examTimeLimit">
+                                            <option value="15">15 minutes</option>
+                                            <option value="30" selected>30 minutes</option>
+                                            <option value="45">45 minutes</option>
+                                            <option value="60">60 minutes</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <button id="startExamBtn" class="btn-primary btn-large">
+                                    🚀 Start Exam
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Exam In Progress -->
+                        <div id="examInProgress" class="card hidden">
+                            <div class="card-header exam-header">
+                                <div class="exam-header-left">
+                                    <h2 id="currentExamMode">Practice Mode</h2>
+                                    <span id="examProgress" class="progress-badge">Question 1 of 10</span>
+                                </div>
+                                <div id="examTimer" class="exam-timer" style="display: none;">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                                    </svg>
+                                    <span id="timeRemaining">30:00</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <!-- Question Display Area -->
+                                <div id="examQuestionDisplay" class="exam-question-container">
+                                    <div class="loading-question">
+                                        <div class="spinner"></div>
+                                        <p>Loading question...</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Feedback Area -->
+                                <div id="examFeedback" class="exam-feedback hidden">
+                                    <div id="feedbackResult" class="feedback-result"></div>
+                                    <div id="feedbackExplanation" class="feedback-explanation"></div>
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="exam-actions">
+                                    <button id="submitAnswerBtn" class="btn-primary">
+                                        Submit Answer
+                                    </button>
+                                    <button id="nextQuestionBtn" class="btn-primary" style="display: none;">
+                                        Next Question →
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Exam Results -->
+                        <div id="examResults" class="card hidden">
+                            <div class="card-header">
+                                <h2>🎉 Exam Complete!</h2>
+                            </div>
+                            <div class="card-body">
+                                <!-- Score Summary -->
+                                <div class="results-summary">
+                                    <div class="score-circle">
+                                        <span id="finalScore" class="score-value">0%</span>
+                                        <span class="score-label">Score</span>
+                                    </div>
+                                    <div class="results-stats">
+                                        <div class="result-stat">
+                                            <span class="stat-value" id="correctCount">0/0</span>
+                                            <span class="stat-label">Correct</span>
+                                        </div>
+                                        <div class="result-stat">
+                                            <span class="stat-value" id="examDuration">0 min</span>
+                                            <span class="stat-label">Duration</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Performance Breakdown -->
+                                <div class="breakdown-section">
+                                    <h3>📊 Difficulty Breakdown</h3>
+                                    <div id="difficultyBreakdown" class="breakdown-grid"></div>
+                                </div>
+                                
+                                <div class="breakdown-section">
+                                    <h3>🎯 Skill Performance</h3>
+                                    <div id="skillBreakdown" class="breakdown-grid"></div>
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="results-actions">
+                                    <button id="startNewExamBtn" class="btn-primary">
+                                        Start New Exam
+                                    </button>
+                                    <button id="viewRecommendationsBtn" class="btn-secondary">
+                                        View Recommendations
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+
+                <!-- RECOMMENDATIONS TAB -->
+                <div class="tab-pane" id="recommendationsTab">
+                    <div class="recommendations-layout">
+                        
+                        <!-- Learning Progress -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>🎯 Your Learning Journey</h2>
+                            </div>
+                            <div class="card-body">
+                                <div id="milestoneInfo" style="text-align: center; padding: 2rem;">
+                                    <p style="color: var(--gray);">Complete questions to track your learning progress</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Quick Stats -->
+                        <div class="card" style="margin-top: 2rem;">
+                            <div class="card-header">
+                                <h2>📊 Your Performance</h2>
+                            </div>
+                            <div class="card-body">
+                                <div id="quickStats">
+                                    <p style="text-align: center; color: var(--gray); padding: 2rem;">
+                                        Generate and answer questions to see your personalized recommendations here!
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Coming Soon -->
+                        <div class="card" style="margin-top: 2rem;">
+                            <div class="card-body" style="text-align: center; padding: 3rem;">
+                                <h3>🚧 Full Recommendations Coming Soon!</h3>
+                                <p>We're building personalized study recommendations based on your performance.</p>
+                                <p style="margin-top: 1rem; color: var(--gray);">Use the <strong>My Profile</strong> tab to see your current skill performance.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AUTHORING CO-PILOT TAB -->
+                <div class="tab-pane" id="authoringTab">
+                    <div class="authoring-layout">
+                        
+                        <!-- Header Banner -->
+                        <div class="authoring-hero">
+                            <h1>✨ Smart Authoring Co-Pilot</h1>
+                            <p>Create professional NCLEX content with AI assistance</p>
+                        </div>
+
+                        <!-- Main Authoring Tools Grid -->
+                        <div class="authoring-tools-grid">
+                            
+                            <!-- Tool 1: Policy → Questions -->
+                            <div class="authoring-tool-card">
+                                <div class="tool-icon">📄➜❓</div>
+                                <h3>Policy → Questions</h3>
+                                <p>Upload a policy PDF and auto-generate 10 NGN questions distributed across types and difficulties</p>
+                                
+                                <div class="tool-form">
+                                    <div class="form-group">
+                                        <label>Upload Policy Document</label>
+                                        <div class="upload-zone" id="policyUploadZone">
+                                            <input type="file" id="policyFileInput" accept=".pdf,.docx" style="display: none;">
+                                            <div class="upload-content">
+                                                <span class="upload-icon">📁</span>
+                                                <span>Click to upload PDF/DOCX</span>
+                                            </div>
+                                            <div id="policyFileName" class="file-name-display"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label>Number of Questions</label>
+                                        <select id="policyQuestionCount">
+                                            <option value="5">5 Questions</option>
+                                            <option value="10" selected>10 Questions</option>
+                                            <option value="15">15 Questions</option>
+                                            <option value="20">20 Questions</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <button class="btn-primary btn-full" id="generateFromPolicyBtn" disabled>
+                                        🚀 Generate Questions from Policy
+                                    </button>
+                                </div>
+                                
+                                <div id="policyQuestionsResult" class="tool-result"></div>
+                            </div>
+                            
+                            <!-- Tool 2: Questions → Micro-Module -->
+                            <div class="authoring-tool-card">
+                                <div class="tool-icon">❓➜📚</div>
+                                <h3>Questions → Micro-Module</h3>
+                                <p>Select generated questions to create learning objectives, teaching content, and clinical pearls</p>
+                                
+                                <div class="tool-form">
+                                    <div class="form-group">
+                                        <label>Select Questions for Module</label>
+                                        <div id="questionSelector" class="question-selector">
+                                            <p class="empty-state">Generate questions first using "Policy → Questions" or from the Generate tab</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label>Module Title (optional)</label>
+                                        <input type="text" id="moduleTitleInput" placeholder="e.g., Understanding Sepsis Management">
+                                    </div>
+                                    
+                                    <button class="btn-primary btn-full" id="generateModuleBtn" disabled>
+                                        📚 Generate Micro-Module
+                                    </button>
+                                </div>
+                                
+                                <div id="microModuleResult" class="tool-result"></div>
+                            </div>
+                            
+                            <!-- Tool 3: Tone & Level Controls -->
+                            <div class="authoring-tool-card">
+                                <div class="tool-icon">🎚️</div>
+                                <h3>Tone & Level Controls</h3>
+                                <p>Customize content for different audiences and reading levels</p>
+                                
+                                <div class="tool-form">
+                                    <div class="form-group">
+                                        <label>Target Audience</label>
+                                        <div class="toggle-group">
+                                            <button class="toggle-btn active" data-audience="student">
+                                                🎓 Student Nurse
+                                            </button>
+                                            <button class="toggle-btn" data-audience="experienced">
+                                                👩‍⚕️ Experienced RN
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label>Language Style</label>
+                                        <div class="toggle-group">
+                                            <button class="toggle-btn active" data-style="plain">
+                                                📖 Plain Language
+                                            </button>
+                                            <button class="toggle-btn" data-style="technical">
+                                                🔬 Technical
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="settings-preview">
+                                        <strong>Current Settings:</strong>
+                                        <span id="currentAudienceDisplay">Student Nurse</span> • 
+                                        <span id="currentStyleDisplay">Plain Language</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tool 4: Multilingual Support -->
+                            <div class="authoring-tool-card">
+                                <div class="tool-icon">🌍</div>
+                                <h3>Multilingual Support</h3>
+                                <p>Generate explanations in Spanish for diverse learners</p>
+                                
+                                <div class="tool-form">
+                                    <div class="form-group">
+                                        <label>Language Options</label>
+                                        <div class="language-toggles">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="includeEnglish" checked disabled>
+                                                <span>🇺🇸 English (Primary)</span>
+                                            </label>
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="includeSpanish">
+                                                <span>🇪🇸 Spanish (Español)</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label>Test Translation</label>
+                                        <textarea id="translationInput" rows="3" placeholder="Enter text to translate to Spanish..."></textarea>
+                                    </div>
+                                    
+                                    <button class="btn-secondary btn-full" id="translateBtn">
+                                        🔄 Translate to Spanish
+                                    </button>
+                                    
+                                    <div id="translationResult" class="translation-output"></div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        
+                        <!-- Generated Content Display Area -->
+                        <div class="card" style="margin-top: 2rem;" id="authoringOutputCard" style="display: none;">
+                            <div class="card-header">
+                                <h2>📋 Generated Content</h2>
+                                <div class="card-actions">
+                                    <button class="btn-secondary" id="copyAuthoringContent">📋 Copy All</button>
+                                    <button class="btn-primary" id="downloadAuthoringContent">💾 Download</button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="authoringOutput"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- History of Generated Content -->
+                        <div class="card" style="margin-top: 2rem;">
+                            <div class="card-header">
+                                <h2>📚 Recent Authoring Sessions</h2>
+                            </div>
+                            <div class="card-body">
+                                <div id="authoringHistory">
+                                    <p class="empty-state">Your generated content will appear here</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+
+                <!-- NEWS & TRENDS TAB -->
+                <div class="tab-pane" id="newsTab">
+                    <div class="news-layout">
+                        <!-- News Hero -->
+                        <div class="news-hero">
+                            <div class="news-hero-content">
+                                <h1>📰 Healthcare News & Trends</h1>
+                                <p>Stay updated with the latest advancements, research, and industry trends</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Search Section -->
+                        <div class="card search-card">
+                            <div class="card-body">
+                                <div class="news-search-container">
+                                    <div class="search-input-group">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="11" cy="11" r="8"/>
+                                            <path d="m21 21-4.35-4.35"/>
+                                        </svg>
+                                        <input type="text" id="newsSearchInput" placeholder="Search healthcare news...">
+                                        <button class="btn-primary" id="newsSearchBtn" style="width: auto; padding: 0.75rem 1.5rem;">
+                                            Search
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Filter Section -->
+                        <div class="card news-filters-card">
+                            <div class="card-body">
+                                <div class="news-filters">
+                                    <div class="filter-group">
+                                        <label>Category</label>
+                                        <select id="newsCategory">
+                                            <option value="all">🌍 All Healthcare News</option>
+                                            <option value="research">🔬 Research & Studies</option>
+                                            <option value="technology">💻 Health Technology</option>
+                                            <option value="policy">📋 Policy & Regulations</option>
+                                            <option value="clinical">🏥 Clinical Practice</option>
+                                            <option value="nursing">👩‍⚕️ Nursing & Caregiving</option>
+                                        </select>
+                                    </div>
+                                    <div class="filter-group">
+                                        <label>Time Range</label>
+                                        <select id="newsTimeRange">
+                                            <option value="today">Today</option>
+                                            <option value="week" selected>This Week</option>
+                                            <option value="month">This Month</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn-secondary" id="refreshNewsBtn" style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                                        </svg>
+                                        Refresh
+                                    </button>
+                                    <button class="btn-secondary" id="newsHistoryBtn" style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+                                        </svg>
+                                        History
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Trending Topics -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>🔥 Trending Topics</h2>
+                                <p>Click to filter by topic</p>
+                            </div>
+                            <div class="card-body">
+                                <div class="trending-tags" id="trendingTags">
+                                    <span class="trend-tag" data-topic="NCLEX">📝 NCLEX</span>
+                                    <span class="trend-tag" data-topic="Nursing">👩‍⚕️ Nursing</span>
+                                    <span class="trend-tag" data-topic="Patient Safety">🛡️ Patient Safety</span>
+                                    <span class="trend-tag" data-topic="CDC">🏛️ CDC Updates</span>
+                                    <span class="trend-tag" data-topic="FDA">💊 FDA News</span>
+                                    <span class="trend-tag" data-topic="Mental Health">🧠 Mental Health</span>
+                                    <span class="trend-tag" data-topic="Research">🔬 Research</span>
+                                    <span class="trend-tag" data-topic="Telehealth">📱 Telehealth</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- News Loading -->
+                        <div id="newsLoading" class="news-loading hidden">
+                            <div class="spinner"></div>
+                            <p>Fetching latest healthcare news...</p>
+                        </div>
+                        
+                        <!-- News Grid -->
+                        <div class="news-grid" id="newsGrid">
+                            <!-- News articles will be loaded here -->
+                        </div>
+                        
+                        <!-- Load More -->
+                        <div class="load-more-container" id="loadMoreNews">
+                            <button class="btn-secondary" id="loadMoreNewsBtn">Load More Articles</button>
+                        </div>
+                        
+                        <!-- Reading History -->
+                        <div class="card" style="margin-top: 2rem;" id="newsHistoryCard">
+                            <div class="card-header">
+                                <h2>📚 Your Reading History</h2>
+                                <button class="btn-sm btn-secondary" id="clearNewsHistoryBtn">Clear History</button>
+                            </div>
+                            <div class="card-body">
+                                <div id="newsHistoryList" class="history-list">
+                                    <p class="empty-state">Articles you read will appear here</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PODCASTS & MEDIA TAB -->
+                <div class="tab-pane" id="mediaTab">
+                    <div class="media-layout">
+                        <!-- Media Hero -->
+                        <div class="media-hero">
+                            <div class="media-hero-content">
+                                <h1>🎧 Healthcare Podcasts & Media</h1>
+                                <p>Listen to expert discussions, debates, and educational content</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Search Section -->
+                        <div class="card search-card">
+                            <div class="card-body">
+                                <div class="news-search-container">
+                                    <div class="search-input-group">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="11" cy="11" r="8"/>
+                                            <path d="m21 21-4.35-4.35"/>
+                                        </svg>
+                                        <input type="text" id="mediaSearchInput" placeholder="Search podcasts and videos...">
+                                        <button class="btn-primary" id="mediaSearchBtn" style="width: auto; padding: 0.75rem 1.5rem;">
+                                            Search
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Media Filters -->
+                        <div class="card media-filters-card">
+                            <div class="card-body">
+                                <div class="media-filters">
+                                    <div class="filter-group">
+                                        <label>Content Type</label>
+                                        <select id="mediaType">
+                                            <option value="all">🎬 All Media</option>
+                                            <option value="podcasts">🎧 Podcasts</option>
+                                            <option value="videos">📺 Videos</option>
+                                            <option value="webinars">💻 Webinars</option>
+                                            <option value="debates">🎤 Debates & Discussions</option>
+                                        </select>
+                                    </div>
+                                    <div class="filter-group">
+                                        <label>Topic</label>
+                                        <select id="mediaTopic">
+                                            <option value="all">All Topics</option>
+                                            <option value="nursing">Nursing Practice</option>
+                                            <option value="medicine">Medical Education</option>
+                                            <option value="research">Research Updates</option>
+                                            <option value="leadership">Healthcare Leadership</option>
+                                            <option value="wellness">Provider Wellness</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn-secondary" id="refreshMediaBtn" style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                                        </svg>
+                                        Refresh
+                                    </button>
+                                    <button class="btn-secondary" id="mediaHistoryBtn" style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+                                        </svg>
+                                        History
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Featured Podcasts -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>⭐ Featured Podcasts</h2>
+                                <p>Top healthcare podcasts recommended for you</p>
+                            </div>
+                            <div class="card-body">
+                                <div class="featured-podcasts" id="featuredPodcasts">
+                                    <!-- Featured podcasts will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Media Loading -->
+                        <div id="mediaLoading" class="media-loading hidden">
+                            <div class="spinner"></div>
+                            <p>Loading healthcare media...</p>
+                        </div>
+                        
+                        <!-- Media Grid -->
+                        <div class="media-grid" id="mediaGrid">
+                            <!-- Media items will be loaded here -->
+                        </div>
+                        
+                        <!-- Podcast Channels Section -->
+                        <div class="card" style="margin-top: 2rem;">
+                            <div class="card-header">
+                                <h2>📻 Popular Podcast Channels</h2>
+                                <p>Subscribe to these channels for regular updates</p>
+                            </div>
+                            <div class="card-body">
+                                <div class="podcast-channels" id="podcastChannels">
+                                    <!-- Podcast channels will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Watch History -->
+                        <div class="card" style="margin-top: 2rem;" id="mediaHistoryCard">
+                            <div class="card-header">
+                                <h2>📺 Your Watch History</h2>
+                                <button class="btn-sm btn-secondary" id="clearMediaHistoryBtn">Clear History</button>
+                            </div>
+                            <div class="card-body">
+                                <div id="mediaHistoryList" class="history-list">
+                                    <p class="empty-state">Media you watch will appear here</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI TUTOR TAB -->
+                <div class="tab-pane" id="tutorTab">
+                    <div class="tutor-layout">
+                        <!-- Tutor Hero -->
+                        <div class="tutor-hero">
+                            <div class="tutor-hero-content">
+                                <div class="tutor-avatar">
+                                    <span>🤖</span>
+                                </div>
+                                <h1>AI Tutor</h1>
+                                <p>Your personal learning assistant powered by PubMed + Hospital Policies</p>
+                                <div class="tutor-disclaimer">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                                    </svg>
+                                    <span>For educational and training purposes only. Not medical advice.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chat Container -->
+                        <div class="tutor-chat-container">
+                            <!-- Quick Topics -->
+                            <div class="tutor-quick-topics">
+                                <h3>💡 Quick Topics</h3>
+                                <div class="quick-topic-chips">
+                                    <button class="topic-chip" onclick="askTutor('Explain the pathophysiology of septic shock')">Septic Shock</button>
+                                    <button class="topic-chip" onclick="askTutor('What are the signs and symptoms of ARDS?')">ARDS Signs</button>
+                                    <button class="topic-chip" onclick="askTutor('Explain the differences between types of shock')">Types of Shock</button>
+                                    <button class="topic-chip" onclick="askTutor('What is the sepsis bundle and why is timing important?')">Sepsis Bundle</button>
+                                    <button class="topic-chip" onclick="askTutor('Explain ventilator settings for ARDS patients')">Ventilator Settings</button>
+                                    <button class="topic-chip" onclick="askTutor('What medications are used in cardiac arrest?')">ACLS Medications</button>
+                                </div>
+                            </div>
+
+                            <!-- Chat Messages -->
+                            <div class="tutor-chat-messages" id="tutorChatMessages">
+                                <div class="tutor-message assistant">
+                                    <div class="message-avatar">🤖</div>
+                                    <div class="message-content">
+                                        <p>Hello! I'm your AI tutor. I can help explain medical concepts using evidence from:</p>
+                                        <ul>
+                                            <li>📚 <strong>PubMed Research</strong> - Latest clinical evidence</li>
+                                            <li>🏥 <strong>Hospital Policies</strong> - Your uploaded documents</li>
+                                        </ul>
+                                        <p>Ask me anything about nursing topics, clinical procedures, or pathophysiology. I'll provide explanations with sources!</p>
+                                        <p><em>Example: "Why is norepinephrine preferred over dopamine in septic shock?"</em></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chat Input -->
+                            <div class="tutor-chat-input-container">
+                                <div class="tutor-chat-input-wrapper">
+                                    <textarea 
+                                        id="tutorChatInput" 
+                                        placeholder="Ask me anything about medical topics..."
+                                        rows="2"
+                                        onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendTutorMessage(); }"
+                                    ></textarea>
+                                    <button class="tutor-send-btn" id="tutorSendBtn" onclick="sendTutorMessage()">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="tutor-input-hints">
+                                    <span>Press Enter to send • Shift+Enter for new line</span>
+                                    <span id="tutorTypingIndicator" class="typing-indicator hidden">
+                                        <span class="dot"></span>
+                                        <span class="dot"></span>
+                                        <span class="dot"></span>
+                                        AI is thinking...
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tutor Features -->
+                        <div class="tutor-features">
+                            <div class="tutor-feature">
+                                <div class="feature-icon">📖</div>
+                                <h4>Evidence-Based</h4>
+                                <p>Answers backed by PubMed research and your hospital policies</p>
+                            </div>
+                            <div class="tutor-feature">
+                                <div class="feature-icon">🎯</div>
+                                <h4>Focused Learning</h4>
+                                <p>Get explanations tailored to nursing concepts and clinical practice</p>
+                            </div>
+                            <div class="tutor-feature">
+                                <div class="feature-icon">🔗</div>
+                                <h4>Source Citations</h4>
+                                <p>Every answer includes references you can verify</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 MedLearn AI. Powered by Gemini 2.0 Flash, PubMed API & Weaviate</p>
+        </div>
+    </footer>
+
+    <script src="/app_s.js"></script>
+</body>
+</html>
