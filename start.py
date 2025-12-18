@@ -1681,6 +1681,50 @@ def health():
     }
 
 
+@app.get("/diagnostics")
+def diagnostics():
+    """Detailed system diagnostics"""
+    diag = {
+        "timestamp": datetime.now().isoformat(),
+        "services": {}
+    }
+    
+    # Check RAG service
+    try:
+        rag = get_rag_service()
+        if rag and rag.client:
+            diag["services"]["rag"] = {
+                "status": "connected",
+                "is_cloud": rag.is_cloud,
+                "has_embedding_model": rag.embedding_model is not None,
+                "weaviate_url": os.environ.get("WEAVIATE_URL", "not set")[:50] + "..." if os.environ.get("WEAVIATE_URL") else "not set",
+                "weaviate_api_key": "set" if os.environ.get("WEAVIATE_API_KEY") else "not set"
+            }
+        else:
+            diag["services"]["rag"] = {
+                "status": "disconnected",
+                "reason": "Client is None"
+            }
+    except Exception as e:
+        diag["services"]["rag"] = {
+            "status": "error",
+            "error": str(e)
+        }
+    
+    # Check other services
+    try:
+        diag["services"]["genai"] = {"status": "ready" if get_genai() else "not loaded"}
+    except Exception as e:
+        diag["services"]["genai"] = {"status": "error", "error": str(e)}
+    
+    try:
+        diag["services"]["learner"] = {"status": "ready" if get_learner_manager() else "not loaded"}
+    except Exception as e:
+        diag["services"]["learner"] = {"status": "error", "error": str(e)}
+    
+    return diag
+
+
 @app.get("/")
 def root():
     """Serve the frontend HTML"""
